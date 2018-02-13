@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Our simple HTTP server</title>
+  <link rel="stylesheet" type="text/css" href="/style.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+  <script type="text/babel">
+    //function to handle our xhr response
+    const handleResponse = (xhr) => {
+      //grab the content-type header from the response
+      //This will tell us what the server actually responded with.
+      //Again, the server can ignore our requested types.
+      const type = xhr.getResponseHeader('content-type');
+      
+      //grab and clear the content section
+      const content = document.querySelector("#content");
+      content.innerHTML = "";
+      
+      //create h1 and p to hold our response data for the page
+      const h1 = document.createElement('h1');
+      const p = document.createElement('p');
+
+      let message;
+
+      //if the response was in json
+      if(type === 'application/json') {
+      //parse the response text into a JSON object
+        console.dir(JSON.parse(xhr.response));
+        message = JSON.parse(xhr.response).message;
+      } //if response was in xml
+      else if (type === 'text/xml') {
+      //grab the message tag from our responseXML
+      //This will only work if the responding XML is completely valid.
+      //Otherwise the responseXML field will be null
+        console.log(xhr.responseXML);
+        message = xhr.responseXML.querySelector('message').textContent;
+      }
+
+      //check the xhr status code and handle accordingly
+      switch(xhr.status) {
+        case 200:
+          h1.textContent = `Success`;
+          break;
+        case 400:
+          h1.textContent = `Bad Request`;
+          break;
+        case 401:
+          h1.textContent = `Unauthorized`;
+          break;
+        case 403:
+          h1.textContent = `Forbidden`;
+          break;
+        case 404:
+          h1.textContent = `Resource Not Found`;
+          break;
+        case 500:
+          h1.textContent = `Internal Server Error`;
+          break;
+        case 501:
+          h1.textContent = `Not Implemented`;
+          break;
+        default: //default other errors we are not handling
+          content.innerHTML = `Error code not implemented by client.`;
+          break;
+      }
+
+      p.textContent = `Message: ${message}`;
+      
+    //append the h1 and p to the content.
+      content.appendChild(h1);
+      content.appendChild(p);
+    };
+    
+    //function to send ajax
+    const sendAjax = (url, type) => {
+      //create a new xhr (ajax) request. 
+      //Remember that these are ASYNCHRONOUS
+      const xhr = new XMLHttpRequest();
+      //set the xhr to a GET request to a certain URL
+      xhr.open('GET', url);
+      //Set the accept headers to the desired response mime type
+      //Server does NOT have to support this. It is a gentle request.
+      xhr.setRequestHeader ("Accept", type);
+
+      //When the xhr loads, call handleResponse and pass the xhr object
+      xhr.onload = () => handleResponse(xhr);
+
+      //send our ajax request to the server
+      xhr.send();
+    };
+
+    //function to get selected values for ajax
+    const getSelected = () => {
+      let page = document.getElementById("page");
+      let type = document.getElementById("type");
+      sendAjax(page.value, type.value);
+    }
+
+    //initialization function
+    const init = () => {
+      // grab send button
+      const sendButton = document.querySelector("#send");
+      
+      //attach the correct functions to the correct events
+      sendButton.addEventListener('click', getSelected);
+    };
+
+    window.onload = init;
+
+  </script>
+</head>
+<body>
+  <section id="top">
+    <h3>Status Code Tests</h3>
+    <select id="page">
+      <option value="/success">Success</option>
+      <option value="/badRequest">Bad Request</option>
+      <option value="/unauthorized">Unauthorized</option>
+      <option value="/forbidden">Forbidden</option>
+      <option value="/internal">Internal</option>
+      <option value="/notImplemented">Not Implemented</option>
+      <option value="/notFound">Not Found</option>
+    </select>
+    <select id="type">
+      <option value="application/json">JSON</option>
+      <option value="text/xml">XML</option>
+    </select>
+    <button id="send">Send</button>
+  </section>
+  <section id="content">
+  </section>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "api-powered-app",
+  "version": "1.0.0",
+  "description": "Image hosting API powered app.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node ./src/server.js",
+    "pretest": "eslint ./src --fix",
+    "test": "echo \"Tests complete\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jmrichards96/api-powered-app.git"
+  },
+  "author": "Josh Richards",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jmrichards96/api-powered-app/issues"
+  },
+  "homepage": "https://github.com/jmrichards96/api-powered-app#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.17.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "nodemon": "^1.14.12"
+  }
+}
