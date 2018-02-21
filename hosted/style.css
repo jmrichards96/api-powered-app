@@ -1,4 +1,7 @@
 html, body {
+  font-family: 'Open Sans', sans-serif;
+  color: rgb(245, 245, 245);
+  background: #111;
   height: 100%;
   width: 100%;
   margin: 0;
@@ -6,16 +9,138 @@ html, body {
 }
 
 #top {
-  text-align: center;
-  margin: 0 auto;
+  background: rgb(39, 39, 39);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  padding: 20px 20px 54px;
 }
 
-#top h1 {
-  font-size: 2em;
+#header {
+  cursor: pointer;
+  text-align: center;
+  font-size: 70px;
+  font-weight: 300;
+  margin: 0 0 20px;
 }
 
 #content {
-  margin-top: 100px;
+  margin: 0;
+  padding-bottom: 230px;
   font-size: 2em;
   text-align: center;
+}
+#status {
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+  margin-bottom: 4px;
+}
+#status h4{
+  margin: 0;
+  padding: 2px 0;
+}
+#status p{
+  margin: 0;
+  padding: 0 0 5px;
+}
+#topicField{
+  display: block;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 30px;
+  color: white;
+  background: transparent;
+  outline: none;
+  border: none;
+  margin-bottom: 10px;
+  width: 100%;
+}
+#descField, #answerField{
+  display: block;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 24px;
+  color: white;
+  background: transparent;
+  outline: none;
+  border: none;
+  resize: none;
+  width: 100%;
+  height: 100px;
+}
+#createButton, #replyButton, #refreshButton{
+  cursor: pointer;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 1em;
+  position: absolute;
+  bottom: 10px;
+  padding: 10px;
+  background-color: rgb(17, 17, 17);
+  color: #fff;
+  outline: none;
+  border: none;
+  -o-transition:.2s;
+  -ms-transition:.2s;
+  -moz-transition:.2s;
+  -webkit-transition:.2s;
+  transition:.2s;
+}
+#createButton:hover, #replyButton:hover, #refreshButton:hover{
+  background-color: rgb(19, 19, 19);
+}
+#createButton, #replyButton{
+  left: 10px;
+}
+#refreshButton{
+  right: 10px;
+}
+#answerForm{
+  display: none;
+}
+.threadRow{
+  cursor: pointer;
+  background-color: rgb(22, 22, 22);
+  margin: 0 4px 4px;
+  -o-transition:.2s;
+  -ms-transition:.2s;
+  -moz-transition:.2s;
+  -webkit-transition:.2s;
+  transition:.2s;
+}
+.threadRow h3{
+  text-align: left;
+  font-size: 30px;
+  font-weight: 300;
+  padding: 5px 15px;
+  margin: 0;
+}
+.threadRow p{
+  background-color: rgb(31, 31, 31);
+  text-align: left;
+  font-size: 16px;
+  padding: 5px 15px;
+  margin: 0;
+  min-height: 60px;
+  -o-transition:.2s;
+  -ms-transition:.2s;
+  -moz-transition:.2s;
+  -webkit-transition:.2s;
+  transition:.2s;
+}
+.threadRow:hover{
+  background-color: rgb(37, 37, 37);
+}
+.threadRow:hover p{
+  background-color: rgb(46, 46, 46);
+}
+.threadReplies{
+  padding: 10px 20px;
+}
+.threadReplies p{
+  font-size: 14px;
+  text-align: left;
+  margin: 0;
+  padding: 10px 0;
+  word-wrap: break-word;
 }

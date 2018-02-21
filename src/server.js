@@ -9,7 +9,7 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 // handle POST requests
 const handlePost = (request, response, parsedUrl) => {
   // if post is to /addUser (our only POST url)
-  if (parsedUrl.pathname === '/addUser') {
+  if (parsedUrl.pathname === '/addThread' || parsedUrl.pathname === '/addReply') {
     const res = response;
 
     // uploads come in as a byte stream that we need
@@ -40,21 +40,27 @@ const handlePost = (request, response, parsedUrl) => {
       // Parse the string into an object by field name
       const bodyParams = query.parse(bodyString);
 
-      // pass to our addUser function
-      jsonHandler.addUser(request, res, bodyParams);
+      // pass to our add function
+      if (parsedUrl.pathname === '/addThread') {
+        jsonHandler.addThread(request, res, bodyParams);
+      } else {
+        jsonHandler.addReply(request, res, bodyParams);
+      }
     });
   }
 };
 
 // handle GET requests
-const handleGet = (request, response, parsedUrl) => {
+const handleGet = (request, response, parsedUrl, params) => {
   // route to correct method based on url
   if (parsedUrl.pathname === '/style.css') {
     htmlHandler.getCSS(request, response);
   } else if (parsedUrl.pathname === '/bundle.js') {
     htmlHandler.getBundle(request, response);
-  } else if (parsedUrl.pathname === '/getUsers') {
-    jsonHandler.getUsers(request, response);
+  } else if (parsedUrl.pathname === '/getThreads') {
+    jsonHandler.getThreads(request, response);
+  } else if (parsedUrl.pathname === '/getReplies') {
+    jsonHandler.getReplies(request, response, params);
   } else if (parsedUrl.pathname === '/') {
     htmlHandler.getIndex(request, response);
   } else {
@@ -64,9 +70,11 @@ const handleGet = (request, response, parsedUrl) => {
 
 // handle Head requests
 const handleHead = (request, response, parsedUrl) => {
-  if (parsedUrl.pathname === '/getUsers') {
+  if (parsedUrl.pathname === '/getThreads') {
     // if get users, send meta data back
-    jsonHandler.getUsersMeta(request, response);
+    jsonHandler.getThreadsMeta(request, response);
+  } else if (parsedUrl.pathname === '/getReplies') {
+    jsonHandler.getRepliesMeta(request, response);
   } else {
     // if not found send 404 without body
     jsonHandler.notFoundMeta(request, response);
@@ -77,10 +85,11 @@ const onRequest = (request, response) => {
   // parse url into individual parts
   // returns an object of url parts by name
   const parsedUrl = url.parse(request.url);
+  const params = query.parse(parsedUrl.query);
 
   switch (request.method) {
     case 'GET':
-      handleGet(request, response, parsedUrl);
+      handleGet(request, response, parsedUrl, params);
       break;
     case 'HEAD':
       handleHead(request, response, parsedUrl);

@@ -1,78 +1,128 @@
+
+const createReplies = (id, thread, content) => {
+  $("#threadForm").hide();
+  $("#answerForm").show();
+  $("#threadId").val(id);
+  let threadPage = ``;
+  threadPage += `<div class="threadRow">`;
+  threadPage += `<input class="threadId" name="threadId" type="hidden" value="${id}" />`;
+  threadPage += `<h3>${thread.topic}</h3>`;
+  threadPage += `<p>${thread.desc}</p>`;
+  threadPage += `</div>`;
+  threadPage += `<div class="threadReplies">`;
+  for (let key in thread.replies) {
+    threadPage += `<p>${thread.replies[key]}</p>`;
+  }
+  threadPage += `</div>`;
+  content.innerHTML = threadPage;
+};
+
+const createThreads = (threads, content) => {
+  $("#threadForm").show();
+  $("#answerForm").hide();
+  let threadRow = ``;
+  for (let key in threads) {
+    threadRow += `<div class="threadRow">`;
+    threadRow += `<input class="threadId" name="threadId" type="hidden" value="${key}" />`;
+    threadRow += `<h3>${threads[key].topic}</h3>`;
+    threadRow += `<p>${threads[key].desc}</p>`;
+    threadRow += `</div>`;
+  }
+  content.innerHTML = threadRow;
+  $(".threadRow").click(function () {
+    requestUpdate('get', `/getReplies?thread=${$(this).find(".threadId").val()}`);
+  });
+};
+
 //function to parse our response
-const parseJSON = (xhr, content) => {
+const parseJSON = (xhr, content, status) => {
   //parse response (obj will be empty in a 204 updated)
   const obj = JSON.parse(xhr.response);
-  console.dir(obj);
 
   //if message in response, add to screen
   if (obj.message) {
     const p = document.createElement('p');
-    p.textContent = `Message: ${obj.message}`;
-    content.appendChild(p);
+    p.textContent = `${obj.message}`;
+    status.appendChild(p);
   }
 
-  //if users in response, add to screen
-  if (obj.users) {
-    const userList = document.createElement('p');
-    const users = JSON.stringify(obj.users);
-    userList.textContent = users;
-    content.appendChild(userList);
+  //if threads in response, add to screen
+  if (obj.threads) {
+    createThreads(obj.threads, content);
+  } else if (obj.id && obj.thread) {
+    createReplies(obj.id, obj.thread, content);
   }
 };
 
 //function to handle our response
 const handleResponse = (xhr, parseResponse) => {
+  const status = document.querySelector('#status');
   const content = document.querySelector('#content');
+  $("#status").fadeOut(50, function () {
+    //check the status code
+    switch (xhr.status) {
+      case 200:
+        //success
+        status.style.backgroundColor = "rgb(0, 70, 0)";
+        status.innerHTML = ``;
+        break;
+      case 201:
+        //created
+        //grab the form's name and age fields so we can check user input
+        const topicField = document.querySelector('#topicField');
+        const descField = document.querySelector('#descField');
+        const answerField = document.querySelector('#answerField');
+        topicField.value = ``;
+        descField.value = ``;
+        answerField.value = ``;
+        status.style.backgroundColor = "rgb(0, 70, 0)";
+        status.innerHTML = '<h4>Create</h4>';
+        break;
+      case 204:
+        //updated (no response back from server)
+        status.style.backgroundColor = "rgb(0, 70, 0)";
+        status.innerHTML = '<h4>Updated (No Content)</h4>';
+        return;
+      case 400:
+        //bad request
+        status.style.backgroundColor = "rgb(80, 0, 0)";
+        status.innerHTML = `<h4>Bad Request</h4>`;
+        break;
+      case 404:
+        //not found
+        status.style.backgroundColor = "rgb(80, 0, 0)";
+        status.innerHTML = `<h4>Resource Not Found</h4>`;
+        break;
+      default:
+        //any other status code
+        status.style.backgroundColor = "rgb(80, 0, 0)";
+        status.innerHTML = `<h4>Error code not implemented by client.</h4>`;
+        break;
+    }
 
-  //check the status code
-  switch (xhr.status) {
-    case 200:
-      //success
-      content.innerHTML = `<b>Success</b>`;
-      break;
-    case 201:
-      //created
-      content.innerHTML = '<b>Create</b>';
-      break;
-    case 204:
-      //updated (no response back from server)
-      content.innerHTML = '<b>Updated (No Content)</b>';
-      return;
-    case 400:
-      //bad request
-      content.innerHTML = `<b>Bad Request</b>`;
-      break;
-    case 404:
-      //not found
-      content.innerHTML = `<b>Resource Not Found</b>`;
-      break;
-    default:
-      //any other status code
-      content.innerHTML = `Error code not implemented by client.`;
-      break;
-  }
-
-  //parse response
-  if (parseResponse) {
-    parseJSON(xhr, content, parseResponse);
-  }
+    //parse response
+    if (parseResponse) {
+      parseJSON(xhr, content, status);
+    }
+  });
+  $("#status").fadeIn(200);
 };
 
 //function to send our post request
-const sendPost = (e, nameForm) => {
+const sendPost = (e, threadForm) => {
   //grab the forms action (url to go to)
   //and method (HTTP method - POST in this case)
-  const nameAction = nameForm.getAttribute('action');
-  const nameMethod = nameForm.getAttribute('method');
+  const action = threadForm.getAttribute('action');
+  const method = threadForm.getAttribute('method');
 
   //grab the form's name and age fields so we can check user input
-  const nameField = nameForm.querySelector('#nameField');
-  const ageField = nameForm.querySelector('#ageField');
+  const topicField = threadForm.querySelector('#topicField');
+  const descField = threadForm.querySelector('#descField');
 
   //create a new Ajax request (remember this is asynchronous)
   const xhr = new XMLHttpRequest();
   //set the method (POST) and url (action field from form)
-  xhr.open(nameMethod, nameAction);
+  xhr.open(method, action);
 
   //set our request type to x-www-form-urlencoded
   //which is one of the common types of form data. 
@@ -93,7 +143,7 @@ const sendPost = (e, nameForm) => {
   //So ours might look like  name=test&age=22
   //Again the 'name' fields in the form are the variable names in the string
   //and the variable names the server will look for.
-  const formData = `name=${nameField.value}&age=${ageField.value}`;
+  const formData = `topic=${topicField.value}&desc=${descField.value}`;
 
   //send our request with the data
   xhr.send(formData);
@@ -104,13 +154,32 @@ const sendPost = (e, nameForm) => {
   return false;
 };
 
-//function to send request
-const requestUpdate = (e, userForm) => {
-  //grab url field 
-  const url = userForm.querySelector('#urlField').value;
-  //grab method selected
-  const method = userForm.querySelector('#methodSelect').value;
+//function to send our reply post request
+const sendPostReply = (e, answerForm) => {
+  const action = answerForm.getAttribute('action');
+  const method = answerForm.getAttribute('method');
 
+  const id = answerForm.querySelector('#threadId');
+  const reply = answerForm.querySelector('#answerField');
+
+  const xhr = new XMLHttpRequest();
+  xhr.open(method, action);
+
+  xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhr.setRequestHeader('Accept', 'application/json');
+
+  xhr.onload = () => handleResponse(xhr, true);
+
+  const formData = `threadId=${id.value}&answer=${reply.value}`;
+  xhr.send(formData);
+
+  e.preventDefault();
+
+  return false;
+};
+
+//function to send request
+const requestUpdate = (method, url) => {
   //create a new AJAX request (asynchronous)
   const xhr = new XMLHttpRequest();
   //setup connect using the selected method and url
@@ -135,24 +204,45 @@ const requestUpdate = (e, userForm) => {
   //send ajax request
   xhr.send();
 
-  //cancel browser's default action
-  e.preventDefault();
   //return false to prevent page redirection from a form
   return false;
 };
 
+// Refreshes the current page
+const refreshPage = () => {
+  if ($("#answerForm").is(':visible')) {
+    requestUpdate('get', `/getReplies?thread=${$("#threadId").val()}`);
+  } else {
+    requestUpdate('get', '/getThreads');
+  }
+};
+
 const init = () => {
   //grab form
-  const nameForm = document.querySelector('#nameForm');
-  const userForm = document.querySelector('#userForm');
+  const threadForm = document.querySelector('#threadForm');
+  const answerForm = document.querySelector('#answerForm');
+  const refreshButton = document.querySelector('#refreshButton');
+  const header = document.querySelector('#header');
 
   //create handler
-  const addUser = e => sendPost(e, nameForm);
-  const getUsers = e => requestUpdate(e, userForm);
+  const addThread = e => sendPost(e, threadForm);
+  const addReply = e => sendPostReply(e, answerForm);
 
   //attach submit event (for clicking submit or hitting enter)
-  nameForm.addEventListener('submit', addUser);
-  userForm.addEventListener('submit', getUsers);
+  threadForm.addEventListener('submit', addThread);
+  answerForm.addEventListener('submit', addReply);
+  refreshButton.addEventListener('click', refreshPage);
+
+  header.addEventListener('click', function () {
+    window.location = '/';
+  });
+
+  //add status animations
+  $("#status").click(function () {
+    $(this).fadeOut(200);
+  });
+
+  requestUpdate("get", "/getThreads");
 };
 
 window.onload = init;

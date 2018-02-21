@@ -1,7 +1,7 @@
 // Note this object is purely in memory
 // When node shuts down this will be cleared.
 // Same when your heroku app shuts down from inactivity
-const users = {};
+const threads = {};
 
 // function to respond with a json object
 // takes request, response, status code and object to send
@@ -19,63 +19,109 @@ const respondJSONMeta = (request, response, status) => {
 };
 
 // return user object as JSON
-const getUsers = (request, response) => {
+const getThreads = (request, response) => {
   const responseJSON = {
-    users,
+    threads,
   };
+  return respondJSON(request, response, 200, responseJSON);
+};
 
+// return user object as JSON
+const getReplies = (request, response, params) => {
+  const responseJSON = {};
+  if (!params.thread || !threads[params.thread]) {
+    responseJSON.message = 'Missing valid thread query parameter.';
+    return respondJSON(request, response, 400, responseJSON);
+  }
+  responseJSON.id = params.thread;
+  responseJSON.thread = threads[params.thread];
   return respondJSON(request, response, 200, responseJSON);
 };
 
 // get meta info about user object
 // should calculate a 200
-const getUsersMeta = (request, response) => {
+const getThreadsMeta = (request, response) => {
+  // return 200 without message, just the meta data
+  respondJSONMeta(request, response, 200);
+};
+
+// get meta info about user object
+// should calculate a 200
+const getRepliesMeta = (request, response) => {
   // return 200 without message, just the meta data
   respondJSONMeta(request, response, 200);
 };
 
 // function to add a user from a POST body
-const addUser = (request, response, body) => {
+const addThread = (request, response, body) => {
   // default json message
   const responseJSON = {
-    message: 'Name and age are both required.',
+    message: 'Question and description are both required.',
   };
 
   // check to make sure we have both fields
   // We might want more validation than just checking if they exist
   // This could easily be abused with invalid types (such as booleans, numbers, etc)
   // If either are missing, send back an error message as a 400 badRequest
-  if (!body.name || !body.age) {
+  if (!body.topic || !body.desc) {
     responseJSON.id = 'missingParams';
     return respondJSON(request, response, 400, responseJSON);
   }
 
   // default status code to 201 created
-  let responseCode = 201;
+  const responseCode = 201;
 
-  // if that user's name already exists in our object
-  // then switch to a 204 updated status
-  if (users[body.name]) {
-    responseCode = 204;
-  } else {
-    // otherwise create an object with that name
-    users[body.name] = {};
+  // if that thread's topic already exists in our object create a unique topic
+  let uniqueTopic = body.topic;
+  if (threads[uniqueTopic]) {
+    let i = 1;
+    while (threads[uniqueTopic + i]) {
+      ++i;
+    }
+    uniqueTopic += i;
   }
 
+  threads[uniqueTopic] = {};
+
   // add or update fields for this user name
-  users[body.name].name = body.name;
-  users[body.name].age = body.age;
+  threads[uniqueTopic].topic = body.topic;
+  threads[uniqueTopic].desc = body.desc;
+  threads[uniqueTopic].replies = [];
+  const date = new Date();
+  threads[uniqueTopic].creationTime = date.getTime();
 
   // if response is created, then set our created message
   // and sent response with a message
-  if (responseCode === 201) {
-    responseJSON.message = 'Created Successfully';
-    return respondJSON(request, response, responseCode, responseJSON);
+  responseJSON.message = 'Created Successfully';
+  return respondJSON(request, response, responseCode, responseJSON);
+};
+
+// function to add a user from a POST body
+const addReply = (request, response, body) => {
+  const responseJSON = {
+    message: 'Answer is required.',
+  };
+
+  if (!body.threadId || !body.answer) {
+    responseJSON.id = 'missingParams';
+    return respondJSON(request, response, 400, responseJSON);
   }
-  // 204 has an empty payload, just a success
-  // It cannot have a body, so we just send a 204 without a message
-  // 204 will not alter the browser in any way!!!
-  return respondJSONMeta(request, response, responseCode);
+  if (!threads[body.threadId]) {
+    responseJSON.id = 'notFound';
+    responseJSON.message = 'Could not find specified thread.';
+    return respondJSON(request, response, 404, responseJSON);
+  }
+
+  // default status code to 201 created
+  const responseCode = 201;
+
+  // Add the submitted reply to the list of replies on the thread
+  threads[body.threadId].replies.push(body.answer);
+
+  // if response is created, then set our created message
+  // and sent response with a message
+  responseJSON.message = 'Created Successfully';
+  return respondJSON(request, response, responseCode, responseJSON);
 };
 
 // function for 404 not found requests with message
@@ -97,9 +143,12 @@ const notFoundMeta = (request, response) => {
 };
 
 module.exports = {
-  getUsers,
-  getUsersMeta,
-  addUser,
+  getThreads,
+  getThreadsMeta,
+  getReplies,
+  getRepliesMeta,
+  addThread,
+  addReply,
   notFound,
   notFoundMeta,
 };
