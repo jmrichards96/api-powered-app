@@ -98,24 +98,26 @@ html, body {
 #answerForm{
   display: none;
 }
-.threadRow{
-  cursor: pointer;
+.threadRow, .threadRowHeader{
   background-color: rgb(22, 22, 22);
   margin: 0 4px 4px;
+}
+.threadRow{
+  cursor: pointer;
   -o-transition:.2s;
   -ms-transition:.2s;
   -moz-transition:.2s;
   -webkit-transition:.2s;
   transition:.2s;
 }
-.threadRow h3{
+.threadRow h3, .threadRowHeader h3{
   text-align: left;
   font-size: 30px;
   font-weight: 300;
   padding: 5px 15px;
   margin: 0;
 }
-.threadRow p{
+.threadRow p, .threadRowHeader p{
   background-color: rgb(31, 31, 31);
   text-align: left;
   font-size: 16px;

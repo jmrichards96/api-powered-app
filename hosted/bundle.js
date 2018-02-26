@@ -4,7 +4,7 @@ const createReplies = (id, thread, content) => {
   $("#answerForm").show();
   $("#threadId").val(id);
   let threadPage = ``;
-  threadPage += `<div class="threadRow">`;
+  threadPage += `<div class="threadRowHeader">`;
   threadPage += `<input class="threadId" name="threadId" type="hidden" value="${id}" />`;
   threadPage += `<h3>${thread.topic}</h3>`;
   threadPage += `<p>${thread.desc}</p>`;
@@ -234,7 +234,7 @@ const init = () => {
   refreshButton.addEventListener('click', refreshPage);
 
   header.addEventListener('click', function () {
-    window.location = '/';
+    requestUpdate('get', '/getThreads');
   });
 
   //add status animations
